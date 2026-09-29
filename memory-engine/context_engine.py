@@ -36,7 +36,7 @@ def clean_application_name(application):
 
     if application.lower() in {
         "visual studio code",
-        "code"
+        "code",
     }:
         return "VS Code"
 
@@ -69,6 +69,128 @@ def generate_context_name(sessions):
     return " + ".join(applications[:3]) + " + More"
 
 
+def detect_activity_intent(sessions):
+    applications = []
+    titles = []
+
+    for session in sessions:
+        application = clean_application_name(
+            session[3]
+        ).lower()
+
+        title = session[4].strip().lower()
+
+        if application:
+            applications.append(application)
+
+        if title:
+            titles.append(title)
+
+    application_text = " ".join(applications)
+    title_text = " ".join(titles)
+
+    coding_signals = [
+        "vs code",
+        "visual studio",
+        "pycharm",
+        "intellij",
+        "android studio",
+        "terminal",
+        "powershell",
+        "command prompt",
+        "cmd",
+    ]
+
+    coding_file_signals = [
+        ".py",
+        ".js",
+        ".ts",
+        ".java",
+        ".cpp",
+        ".c",
+        ".cs",
+        ".html",
+        ".css",
+        ".sql",
+    ]
+
+    research_signals = [
+        "chrome",
+        "edge",
+        "firefox",
+        "google",
+        "search",
+        "stackoverflow",
+        "github",
+        "documentation",
+        "docs",
+        "wikipedia",
+    ]
+
+    writing_signals = [
+        "word",
+        "notepad",
+        "google docs",
+        "microsoft word",
+    ]
+
+    communication_signals = [
+        "teams",
+        "slack",
+        "discord",
+        "whatsapp",
+        "telegram",
+        "outlook",
+        "gmail",
+    ]
+
+    coding_detected = (
+        any(
+            signal in application_text
+            for signal in coding_signals
+        )
+        or any(
+            signal in title_text
+            for signal in coding_file_signals
+        )
+    )
+
+    research_detected = any(
+        signal in application_text
+        or signal in title_text
+        for signal in research_signals
+    )
+
+    writing_detected = any(
+        signal in application_text
+        or signal in title_text
+        for signal in writing_signals
+    )
+
+    communication_detected = any(
+        signal in application_text
+        or signal in title_text
+        for signal in communication_signals
+    )
+
+    if coding_detected and research_detected:
+        return "Coding + Research"
+
+    if coding_detected:
+        return "Coding"
+
+    if research_detected:
+        return "Research"
+
+    if writing_detected:
+        return "Writing"
+
+    if communication_detected:
+        return "Communication"
+
+    return "General Activity"
+
+
 def generate_context_summary(sessions):
     applications = []
     titles = []
@@ -87,16 +209,16 @@ def generate_context_summary(sessions):
             titles.append(title)
 
     if not applications:
-        return "General computer activity."
+        return "Intent: General Activity."
 
-    if len(applications) == 1:
-        summary = f"Activity focused on {applications[0]}."
-    else:
-        application_text = ", ".join(applications)
-        summary = (
-            f"Activity moved between "
-            f"{application_text}."
-        )
+    intent = detect_activity_intent(sessions)
+
+    application_text = ", ".join(applications)
+
+    summary = (
+        f"Intent: {intent}. "
+        f"Activity involved {application_text}."
+    )
 
     if titles:
         important_titles = titles[:3]
@@ -147,8 +269,8 @@ def save_context_metadata(context_id, name, summary):
         (
             name,
             summary,
-            context_id
-        )
+            context_id,
+        ),
     )
 
     connection.commit()
@@ -166,7 +288,7 @@ def build_contexts():
 
     sessions = sorted(
         sessions,
-        key=lambda session: session[1]
+        key=lambda session: session[1],
     )
 
     contexts = []
@@ -180,25 +302,25 @@ def build_contexts():
         if current_context_id is None:
             current_context_id = create_context(
                 start_time=session[1],
-                name="Temporary Context"
+                name="Temporary Context",
             )
 
             current_sessions = [session]
 
             add_session_to_context(
                 context_id=current_context_id,
-                session_id=session[0]
+                session_id=session[0],
             )
 
         elif should_continue_context(
             previous_session,
-            session
+            session,
         ):
             current_sessions.append(session)
 
             add_session_to_context(
                 context_id=current_context_id,
-                session_id=session[0]
+                session_id=session[0],
             )
 
         else:
@@ -212,33 +334,33 @@ def build_contexts():
 
             close_context(
                 context_id=current_context_id,
-                end_time=previous_session[2]
+                end_time=previous_session[2],
             )
 
             save_context_metadata(
                 context_id=current_context_id,
                 name=context_name,
-                summary=context_summary
+                summary=context_summary,
             )
 
             contexts.append(
                 {
                     "id": current_context_id,
                     "name": context_name,
-                    "summary": context_summary
+                    "summary": context_summary,
                 }
             )
 
             current_context_id = create_context(
                 start_time=session[1],
-                name="Temporary Context"
+                name="Temporary Context",
             )
 
             current_sessions = [session]
 
             add_session_to_context(
                 context_id=current_context_id,
-                session_id=session[0]
+                session_id=session[0],
             )
 
         previous_session = session
@@ -257,20 +379,20 @@ def build_contexts():
         if last_end is not None:
             close_context(
                 context_id=current_context_id,
-                end_time=last_end
+                end_time=last_end,
             )
 
         save_context_metadata(
             context_id=current_context_id,
             name=context_name,
-            summary=context_summary
+            summary=context_summary,
         )
 
         contexts.append(
             {
                 "id": current_context_id,
                 "name": context_name,
-                "summary": context_summary
+                "summary": context_summary,
             }
         )
 
