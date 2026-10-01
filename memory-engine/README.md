@@ -1,161 +1,49 @@
 # Digital Memory
 
-A local-first digital memory engine for capturing, organizing, and searching computer activity.
+A local-first digital memory system that captures activity, organizes it into sessions and contexts, and lets you ask questions about what you were doing.
 
-## Overview
+## What it does
 
-Digital Memory is a privacy-conscious prototype that turns Windows activity into structured, searchable memory.
+- Captures active Windows application activity
+- Stores events locally in SQLite
+- Groups activity into sessions
+- Builds higher-level activity contexts
+- Detects activity intent such as coding and research
+- Supports natural-language memory questions
+- Works offline
+- Keeps memory data on the local machine
 
-Instead of storing activity as isolated events, the system organizes it into:
+## Example
 
-**Events → Sessions → Contexts → Summaries**
+You can ask:
 
-The current version focuses on reliable local data collection and organization.
+> What was I researching?
 
-## Current Features
-
-* Windows active-window monitoring
-* Automatic event recording
-* SQLite-based local persistence
-* Automatic session creation
-* Session-to-event relationships
-* Context grouping based on activity gaps
-* Automatic context summaries
-* Keyword-based memory search
-* Timeline view
-* Time-range queries
-* Session inspection
-* Context inspection
-* Recovery of sessions left open after interruption
-* Local-first operation
+The system searches stored activity and returns the relevant research context.
 
 ## Architecture
 
-```text
-Windows Active Window
-        ↓
-Windows Collector
-        ↓
-Events
-        ↓
-Sessions
-        ↓
-Context Engine
-        ↓
-Contexts + Summaries
-        ↓
-SQLite Database
-        ↓
-CLI Search / Timeline / Inspection
-```
+Windows Activity → Events → Sessions → Contexts → SQLite → Memory Queries
 
-## Project Structure
+## Tech Stack
 
-```text
-memory-engine/
-│
-├── app.py
-├── context_engine.py
-├── memory_store.py
-├── windows_collector.py
-├── windows_collector.backup.py
-├── README.md
-└── .gitignore
-```
-
-## Requirements
-
-* Windows
-* Python 3
-* Git
-* Python packages used by the collector
-
-## Running the Collector
-
-Activate the virtual environment:
-
-```powershell
-.\.venv\Scripts\Activate.ps1
-```
-
-Start the Windows collector:
-
-```powershell
-python windows_collector.py
-```
-
-The collector monitors the active window and records changes locally.
-
-Press:
-
-```text
-Ctrl+C
-```
-
-to stop it safely.
-
-## Using the Memory Interface
-
-Run:
-
-```powershell
-python app.py
-```
-
-The current interface provides:
-
-```text
-1. Timeline
-2. Search
-3. Time Range
-4. Sessions
-5. Session Details
-6. Contexts
-```
-
-## Privacy
-
-The current implementation is local-first.
-
-Recorded activity is stored in a local SQLite database rather than automatically being uploaded to a remote service.
-
-The database file is intentionally excluded from Git through `.gitignore`.
-
-## Design Goals
-
-The project is being developed around several principles:
-
-* Local-first data ownership
-* Structured memory rather than raw logs
-* Reliable persistence
-* Recoverability after interruption
-* Explainable context grouping
-* Extensible architecture
-* Cross-device memory as a future direction
+- Python
+- SQLite
+- PyGetWindow
+- Git / GitHub
 
 ## Current Status
 
-This repository contains the working Windows MVP.
+Working prototype with Windows activity capture, persistent memory, session tracking, context detection, and memory queries.
 
-The architecture is designed to be extended toward:
+## Privacy
 
-* Android activity collection
-* Cross-device synchronization
-* richer activity-intent detection
-* natural-language memory queries
-* stronger privacy and security controls
-* a more polished user interface
+The system is designed around local-first storage. Activity data is stored in the project's local SQLite database and is not automatically uploaded to a cloud service.
 
-## Why This Project?
+## Future Direction
 
-Digital activity generates large amounts of information, but most systems treat that information as isolated logs.
-
-Digital Memory explores a different approach:
-
-**What if device activity could become structured personal context that a user could search and understand later?**
-
-This project is an experiment toward that idea.
-
-## License
-
-License to be determined.
+- Android activity capture
+- Cross-device synchronization
+- Smarter context understanding
+- Better natural-language memory retrieval
+- Memory graph visualization
